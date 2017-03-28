@@ -239,10 +239,9 @@ class Obfuscator
      **/
     private function obfuscateFileContents($file, $ignoreError)
     {
+        // Input code
+        $source = php_strip_whitespace($file);
         try {
-            // Input code
-            $source = php_strip_whitespace($file);
-
             // Get AST
             $ast = $this->getTraverser()->traverse(
                 $this->getParser()->parse($source)
@@ -250,12 +249,13 @@ class Obfuscator
 
             return "<?php\n" . $this->getPrettyPrinter()->prettyPrint($ast);
         } catch (Exception $e) {
-            if($ignoreError) {
+            if ($ignoreError) {
                 sprintf('Could not parse file "%s"', $file);
                 $this->getEventDispatcher()->dispatch(
                     'obfuscator.file.error',
                     new FileErrorEvent($file, $e->getMessage())
                 );
+                return $source;
             } else {
                 throw new Exception(
                     sprintf('Could not parse file "%s"', $file),
